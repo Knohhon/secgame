@@ -1,10 +1,25 @@
+from random import randint
+
+#TODO перенести AgentConfig в класс создания агента
 
 
 class AgentConfig:
-    def __init__(self, agent_type):
-        self.agent_type =
+    def __init__(self, agent_type, agent_id):
+        self.__agent_type = agent_type
+        self.__agent_id = agent_id
 
+    @property
+    def agent_type(self):
+        return self.__agent_type
 
+    @property
+    def agent_id(self):
+        return self.__agent_id
+
+    @classmethod
+    def set_agent_id(cls, agent_id):
+        agent_id = randint(0, 100)
+        cls.__agent_id = agent_id
 
 
 class RedAgentConfig:
