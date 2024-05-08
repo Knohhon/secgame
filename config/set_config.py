@@ -1,5 +1,5 @@
-import network_config
-import agents_config
+from config.network_config import NetworkConfig
+from config.agents_config import RedAgentConfig, BlueAgentConfig
 
 
 class Config:
@@ -13,18 +13,20 @@ class Config:
         self.close_node = close_node
         self.repare = repare
 
-    def set_config_network(self, node_count, edge_count, random_edges):
-        network_config.NetworkConfig.node_count = self.node_count
-        network_config.NetworkConfig.edge_count = self.edge_count
-        network_config.NetworkConfig.random_edges = self.random_edges
+    def set_config_network(self):
+        NetworkConfig.node_count = self.node_count
+        NetworkConfig.edge_count = self.edge_count
+        NetworkConfig.random_edges = self.random_edges
 
-    def set_config_red_agent(self, replace_to_node, compromise):
-        agents_config.RedAgentConfig.red_replace_to_node = self.replace_to_node
-        agents_config.RedAgentConfig.red_compromise = self.compromise
+    def set_config_red_agent(self):
+        RedAgentConfig.red_replace_to_node = self.replace_to_node
+        RedAgentConfig.red_compromise = self.compromise
 
-    def set_config_blue_agent(self, close_node, repare):
-        agents_config.BlueAgentConfig.blue_close_node = self.close_node
-        agents_config.BlueAgentConfig.blue_repare = self.repare
+    def set_config_blue_agent(self):
+        BlueAgentConfig.blue_close_node = self.close_node
+        BlueAgentConfig.blue_repare = self.repare
+
+
 
 
 
