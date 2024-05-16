@@ -20,5 +20,12 @@ class RedAgent:
     def policy(self, policy):
         self.red_policy = policy
 
+    @property
+    def action(self):
+        return self.red_action
+
+    @action.setter
+    def action(self, action):
+        self.red_action = action
 
 

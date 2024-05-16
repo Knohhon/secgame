@@ -14,12 +14,12 @@ def secgame():
     conf.set_config_blue_agent()
     network = env.network.Network()
     G = network.create_network_graph()
-    nx.draw_spring(G, with_labels=True)
+    nx.draw_spring(G, with_labels=True, node_color="Green")
     plt.show()
     matrix = network.matrix_graph()
     print(matrix)
     tensor = network.tensor_graph()
     print(tensor)
 
-secgame()
 
+secgame()
