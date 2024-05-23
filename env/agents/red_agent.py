@@ -1,8 +1,8 @@
 class RedAgent:
-    def __init__(self, red_state, red_policy, red_action):
-        self.red_state = red_state
-        self.red_policy = red_policy
-        self.red_action = red_action
+    def __init__(self):
+        self.red_state = None
+        self.red_policy = None
+        self.red_action = None
 
     @property
     def state(self):

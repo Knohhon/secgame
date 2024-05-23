@@ -1,8 +1,9 @@
 class NetworkConfig:
-    def __init__(self, node_count: int, edge_count: int, random_edges: bool):
+    def __init__(self, node_count: int, edge_count: int, random_edges: bool, count_layers: int):
         self.__node_count = node_count
         self.__edge_count = edge_count
         self.__random_edges = random_edges
+        self.__count_layers = count_layers
 
     @property
     def node_count(self):
@@ -28,3 +29,10 @@ class NetworkConfig:
     def random_edges(self, value):
         self.__random_edges = value
 
+    @property
+    def count_layers(self) -> int:
+        return int(self.__count_layers)
+
+    @count_layers.setter
+    def count_layers(self, value):
+        self.__count_layers = value

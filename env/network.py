@@ -7,9 +7,13 @@ import numpy as np
 class Network:
 
     def __init__(self):
+        self.count_layers = network_config.NetworkConfig.count_layers
         self.count_nodes = network_config.NetworkConfig.node_count
         self.count_edges = network_config.NetworkConfig.edge_count
         self.networkGraph = nx.Graph()
+
+        # кол-во слоев в тензоре зависит от кол-ва возможных состояний узлов
+        self.count_layers = network_config.NetworkConfig.count_layers
         self.list_of_nodes = []
         self.list_of_edges = []
 
@@ -45,9 +49,10 @@ class Network:
 
     def tensor_graph(self):
         matrix = self.matrix_graph()
-        tensor = np.array([matrix,
-                          np.zeros(matrix.shape),
-                          np.zeros(matrix.shape)])
+        size = matrix.size
+        for i in range(self.count_layers):
+            matrix += np.zeros(matrix.shape)
+        tensor = matrix.reshape(self.count_layers, size)
         return tensor
 
 
