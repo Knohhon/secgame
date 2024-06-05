@@ -13,6 +13,11 @@ class RedRandomAgent(AgentInterface):
         prob = self.policy[state]
         print(prob, env.red_action_space)
         action = np.random.choice(len(env.red_action_space), p=prob)
+        if env.red_action_space[action][2] == 2 and env.red_action_space[action][2] in env.attacks:
+            self.get_action(state, env)
+        elif env.red_action_space[action] == 3 and env.red_action_space[action][2] not in env.attacks:
+            self.get_action(state, env)
+
         return env.red_action_space[action]
 
     """

@@ -17,7 +17,7 @@ class EnvNetwork(gym.Env):
                  network: Network):
         super().__init__()
         self.network = network
-        self.env = self.network.tensor
+        self.env = None
         #self.metadata = {'render.modes': ['human', 'rgb_array'], 'video.frames_per_second': 10}
         # self.observation_space = spaces.Graph(node_space=self.network.list_of_nodes,
         #                                      edge_space=self.network.list_of_edges)
@@ -41,7 +41,6 @@ class EnvNetwork(gym.Env):
         self.red_action_var = red_action_var
         self.red_state = None  # текущее положение задается номером узла, номерами соседних узлов
         self.blue_action_var = blue_action_var
-        self.reset()
         self.red_action_space = []
         """
         0 - проверка определенного узла; 1 - выключение определенного узла;
@@ -89,12 +88,14 @@ class EnvNetwork(gym.Env):
                 red_reward = self.red_rewards[0]
             elif red_step[2] == 2:
                 self.red_state = [red_step[1]] + self.set_red_neighbours_nodes(red_step[1])
+                self.red_action_space = self.set_red_action_space(self.red_state)
                 red_reward = self.red_rewards[1]
                 num_node = red_step[1]
                 self.set_red_env_state(num_node, num_layers=1)
                 self.attacks.append(red_step[1])
             elif red_step[2] == 3:
                 self.red_state = [red_step[1]] + self.set_red_neighbours_nodes(red_step[1])
+                self.red_action_space = self.set_red_action_space(self.red_state)
                 red_reward = self.red_rewards[2]
             if red_reward not in self.red_rewards:
                 self.info += ' ' + self.info_type["red"][1]
@@ -135,12 +136,14 @@ class EnvNetwork(gym.Env):
         Перезапуск среды, установка значений к стартовым значениям
         :return:
         """
+        self.env = self.network.tensor
         self.red_state = [self.seed()]
         self.red_state += self.set_red_neighbours_nodes(self.red_state[0])
         self.blue_state = self.env
         self.red_action_space = self.set_red_action_space()
         self.blue_action_space = self.set_blue_action_space()
         self.set_red_env_state(self.red_state[0], num_layers=1)
+        self.attacks.append(self.red_state[0])
         if self.terminated:
             self.red_trajectories.append(self.red_trajectory)
             self.blue_trajectories.append(self.blue_trajectory)
@@ -201,7 +204,7 @@ class EnvNetwork(gym.Env):
             for action in self.red_action_var:
                 if action == 1:
                     pairs = [red_state[0], red_state[0], action]
-                elif action == 0 and red_state[i] in self.attacks:
+                elif action == 3 and red_state[i] in self.attacks:
                     pairs = [red_state[0], red_state[i], action]
                 elif action == 2 and red_state[i] not in self.attacks and red_state[i] != red_state[0]:
                     pairs = [red_state[0], red_state[i], action]
