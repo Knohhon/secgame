@@ -3,9 +3,11 @@ from config.agents_config import RedAgentConfig, BlueAgentConfig
 
 
 class Config:
-
+    """
+    Задает конфигурацию для красного, синего агентов, конфигурауию сети
+    """
     def __init__(self, node_count, edge_count, random_edges, replace_to_node, compromise,
-                 close_node, repare, count_layers):
+                 close_node, repare, count_layers, test):
         self.node_count = node_count
         self.edge_count = edge_count
         self.random_edges = random_edges
@@ -13,6 +15,7 @@ class Config:
         self.compromise = compromise
         self.close_node = close_node
         self.repare = repare
+        self.test = test
         self.count_layers = count_layers
 
     def set_config_network(self):
@@ -20,6 +23,7 @@ class Config:
         NetworkConfig.edge_count = self.edge_count
         NetworkConfig.random_edges = self.random_edges
         NetworkConfig.count_layers = self.count_layers
+        NetworkConfig.test = self.test
 
     def set_config_red_agent(self):
         RedAgentConfig.red_replace_to_node = self.replace_to_node

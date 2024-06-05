@@ -1,20 +1,21 @@
 import numpy as np
 
-from env.agents.red_agent import RedAgent
+from env.agents.agent_interface import AgentInterface
+from env.envNetwork import EnvNetwork
 
 
-class RedRandomAgent(RedAgent):
-    def __init__(self, list_states_actions):
+class RedRandomAgent(AgentInterface):
+    def __init__(self, ):
         super().__init__()
-        self.agent = RedAgent()
-        self.list_states_actions = list_states_actions
-        self.agent.red_policy = np.ones(list_states_actions[0], list_states_actions[1]) / list_states_actions[1]
+        self.policy = None
 
-    def get_action(self, state):
-        prob = self.agent.red_policy[state]
-        action = np.random.choice(np.arange(self.agent.action), p=prob)
-        return action
+    def get_action(self, state, env: EnvNetwork = None) -> list[int, int, int]:
+        prob = self.policy[state]
+        print(prob, env.red_action_space)
+        action = np.random.choice(len(env.red_action_space), p=prob)
+        return env.red_action_space[action]
 
+    """
     def update_policy(self, elite_session):
         new_policy = np.zeros(self.list_states_actions[0], self.list_states_actions[1])
 
@@ -29,5 +30,13 @@ class RedRandomAgent(RedAgent):
                 new_policy[state] /= new_policy[state]
 
         self.policy = new_policy
+    """
 
+    def set_policy(self, env: EnvNetwork = None):
+        self.policy = [0] * len(env.network.list_of_nodes)
+        for i in range(len(env.network.list_of_nodes)):
+            neighbours = env.set_red_neighbours_nodes(i)
+            action_space = env.set_red_action_space([i] + neighbours)
+            #print(f"Пространство действий коасного: {action_space}")
+            self.policy[i] = [1/len(action_space) for x in range(len(action_space))]
 

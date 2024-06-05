@@ -1,22 +1,22 @@
 import numpy as np
 
-from env.agents.blue_agent import BlueAgent
+from env.agents.agent_interface import AgentInterface
+from env.envNetwork import EnvNetwork
 
 
-class BlueRandomAgent(BlueAgent):
-    def __init__(self, list_states_actions):
+class BlueRandomAgent(AgentInterface):
+    def __init__(self):
         super().__init__()
-        self.agent = BlueAgent()
-        self.list_states_actions = list_states_actions
-        self.agent.blue_policy = np.ones(list_states_actions[0], list_states_actions[1]) / list_states_actions[1]
+        self.policy = None
 
-    def get_action(self, state):
-        prob = self.agent.blue_policy[state]
-        action = np.random.choice(np.arange(self.agent.action), p=prob)
-        return action
+    def get_action(self, num_step, env: EnvNetwork = None) -> list[int, int]:
+        prob = self.policy[num_step]
+        action = np.random.choice(len(env.blue_action_space), p=prob)
+        return env.blue_action_space[action]
 
+    """
     def update_policy(self, elite_session):
-        new_policy = np.zeros(self.list_states_actions[0], self.list_states_actions[1])
+        new_policy = np.zeros(self.state[0], self.state[1])
 
         for session in elite_session:
             for state, action in (session['state'], session['action']):
@@ -28,6 +28,23 @@ class BlueRandomAgent(BlueAgent):
             else:
                 new_policy[state] /= new_policy[state]
 
-        self.policy = new_policy
+        self.blue_policy = new_policy
+    """
+
+    @staticmethod
+    def interpretate_state(env: EnvNetwork = None) -> int:
+        s = 0
+        for i in range(len(env.network.list_of_nodes)):
+            for j in range(len(env.blue_action_var) + 1):
+                s += 1
+        return s
+
+    def set_policy(self, env: EnvNetwork = None):
+        print(env.network.list_of_nodes)
+        print(self.interpretate_state(env))
+        self.policy = [0] * self.interpretate_state(env)
+        for i in range(self.interpretate_state(env)):
+            self.policy[i] = [1/len(env.blue_action_space) for x in range(len(env.blue_action_space))]
+
 
 
