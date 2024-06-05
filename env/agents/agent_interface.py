@@ -2,7 +2,7 @@ from env.agents.create_agent import Agent
 
 
 class BlueAgent():
-    def __init__(self):
+    def __init__(self, agent_type: str):
         self.blue_state = None
         self.blue_policy = None
         self.blue_action = None
