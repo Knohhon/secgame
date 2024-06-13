@@ -17,7 +17,10 @@ class RedRandomAgent(AgentInterface):
             self.get_action(state, env)
         elif env.red_action_space[action] == 3 and env.red_action_space[action][2] not in env.attacks:
             self.get_action(state, env)
-
+        """
+        if env.red_action_space[action][2] in env.off_node:
+            self.get_action(state, env)
+        """
         return env.red_action_space[action]
 
     """

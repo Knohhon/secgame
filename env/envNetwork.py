@@ -1,3 +1,4 @@
+import random
 from typing import Any, Tuple, Dict, Type
 
 from gym.core import ActType
@@ -31,6 +32,7 @@ class EnvNetwork(gym.Env):
         self.red_trajectories = []
         self.attacks = []  # Скомпрометированные ноды
         self.defenses = []  # Проверенные ноды
+        self.off_node = []  # Выключеные ноды
         self.blue_state = []
         self.red_rewards = red_rewards
         self.blue_rewards = blue_rewards
@@ -69,7 +71,7 @@ class EnvNetwork(gym.Env):
         [1 - остаться на месте,
         2 - скомпрометировать соседний узел (агент перемещается в этот узел) (узел указать),
         3 - переместиться в другой скомпрометированный узел (узел указать)] - red;
-        [0 - проверка определенного узла (узел указать), 1 - выключение определенного узла (узел указать)] - blue
+        [1 - проверка определенного узла (узел указать), 2 - выключение определенного узла (узел указать)] - blue
         :return:
         """
         self.info = ""
@@ -78,11 +80,10 @@ class EnvNetwork(gym.Env):
         blue_reward = -1000
         reward = 0
         self.info += self.info_type["env"][1]
-        if action[2] not in self.red_action_var:
-            self.info += self.info_type["env"][3]
-            return red_reward, blue_reward, False, self.info
         if agent_type == "red":
-            self.red_trajectory.append(self.red_state)
+            if action[2] not in self.red_action_var:
+                self.info += self.info_type["env"][3]
+                return red_reward, blue_reward, False, self.info
             red_step = action
             if red_step[2] == 1:
                 red_reward = self.red_rewards[0]
@@ -104,18 +105,19 @@ class EnvNetwork(gym.Env):
                 pass
             red_reward += self.red_rewards[3]
             reward = red_reward
+            self.red_trajectory.append([reward, action[0], action])
+            print(f"Траектория красного: {self.red_trajectory}")
 
         elif agent_type == "blue":
             self.blue_trajectory.append(self.blue_state)
-            blue_step = self.blue_action_space[action]
+            blue_step = action
             num_node = blue_step[0]
-            if blue_step[2] == 1:
-                self.set_red_env_state(num_node, num_layers=2)
+            if blue_step[1] == 1:
                 self.set_blue_state(num_node, num_layers=2)
                 blue_reward = self.blue_rewards[0]
-            elif blue_step[2] == 2:
-                self.set_red_env_state(num_node, num_layers=3)
+            elif blue_step[1] == 2:
                 self.set_blue_state(num_node, num_layers=3)
+                self.off_node.append(blue_step[0])
                 blue_reward = self.blue_rewards[1]
             if blue_reward not in self.blue_rewards:
                 self.info += self.info_type["blue"][1]
@@ -124,8 +126,11 @@ class EnvNetwork(gym.Env):
             reward = blue_reward
         else:
             self.info += self.info_type["env"][2]
-        if self.current_time == self.max_time:
+        print(f"Текущий ход: {self.current_time}")
+        if self.current_time + 1 == self.max_time:
             self.terminated = True
+            print(f"Конец ходов {self.terminated}")
+        self.current_time += 1
         state = [self.red_state, self.blue_state]
         observation = state
         # observation; reward; terminated - если достиг финального состояния; truncated - таймлимит; info;
@@ -143,7 +148,9 @@ class EnvNetwork(gym.Env):
         self.red_action_space = self.set_red_action_space()
         self.blue_action_space = self.set_blue_action_space()
         self.set_red_env_state(self.red_state[0], num_layers=1)
+        self.attacks = []
         self.attacks.append(self.red_state[0])
+        self.current_time = 0
         if self.terminated:
             self.red_trajectories.append(self.red_trajectory)
             self.blue_trajectories.append(self.blue_trajectory)
@@ -226,7 +233,6 @@ class EnvNetwork(gym.Env):
                 pairs = [node, action]
                 blue_space_array += [pairs]
                 # print("Возможное действие Blue: ", pairs)
-        print("Пространоство действий Blue: ", blue_space_array)
         assert (len(blue_space_array) != 0)
         return blue_space_array
 
@@ -265,5 +271,4 @@ class EnvNetwork(gym.Env):
         :param num_layers:
         :return:
         """
-        for j in range(len(self.network.list_of_nodes)):
-            self.blue_state[num_node][j][num_layers] = 1
+        self.blue_state[num_layers][num_node][num_node] = 1
