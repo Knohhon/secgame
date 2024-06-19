@@ -44,14 +44,90 @@ red_all_trajectories = []
 
 blue_all_trajectories = []
 
+elite_session_red = []
+elite_session_blue = []
+
 red_total_reward = 0
 red_rewards_list = []
 blue_total_reward = 0
 blue_rewards_list = []
 graph_red = nx.Graph()
+old_red_rewards_list = []
+old_blue_rewards_list = []
 test_f = False
 
-for generation in range(10):
+for grade in range(3):
+    for generation in range(100):
+        for i in range(env.max_time):
+            if i % 2 == 0:
+                # print(f"Пространство действий красного: {env.red_action_space}")
+                action = red.get_action(env.red_state[0], env)
+                state, rewards, terminated, info = env.step(action, "red")
+                print(f"Red: {rewards, terminated, info}")
+                red_total_reward += rewards
+                # print(f"Состояние компрометации: \n {state[1][1]}")
+                if action[0] != action[1] and test_f:
+                    graph_red.add_edge(action[0], action[1])
+                    nx.draw_spring(graph_red, with_labels=True, node_color="Red")
+                    plt.show()
+
+                # print(f"Путь красного: {env.red_trajectory}")
+                print(f"Награда красного: {red_total_reward}")
+                # red_all_trajectories.append([red_total_reward] + env.red_trajectory)
+            else:
+                print(f"Пространство действий синего: {env.blue_action_space}")
+                action = blue.get_action(i - 1, env)
+                print(f"Действие синего {len(action)}")
+                state, rewards, terminated, info = env.step(action, "blue")
+                print(f"Blue: {rewards, terminated, info}")
+                blue_total_reward += rewards
+                # print(f"Фиксация проверки: \n {state[1][2]}")
+                # print(f"Фиксация выключения: \n {state[1][3]}")
+                print(f"Награда синего: {blue_total_reward}")
+                # blue_all_trajectories.append([blue_total_reward] + env.blue_trajectory)
+            if terminated:
+                print("End")
+                env.reset()
+                break
+
+        red_rewards_list.append([generation, red_total_reward])
+        blue_rewards_list.append([generation, blue_total_reward])
+        red_total_reward = 0
+        blue_total_reward = 0
+
+        graph_red = nx.Graph()
+
+        obs, info = env.reset()
+        red_all_trajectories = env.red_trajectories
+        blue_all_trajectories = env.blue_trajectories
+        elite_session_red_num = env.get_quantile(quantile, red_rewards_list)
+        elite_session_red_list = [red_all_trajectories[x[0]] for x in elite_session_red_num]
+        elite_session_blue = env.get_quantile(quantile, blue_rewards_list)
+        red.update_policy(env, elite_session_red_list)
+
+        print(f"Траектории Red: {red_all_trajectories}")
+        print(f"Кол-во траекторий красного {len(red_all_trajectories)}")
+        print(f"Номера лучших траекторий красного {elite_session_red_num}")
+        print(f"Лучшие траеткории красного {elite_session_red_list}")
+        print(f"Кол-во траекторий синего {len(blue_all_trajectories)}")
+        print(f"Номера лучших траетории синего {elite_session_blue}")
+        print(f"Награды красного: {red_rewards_list}")
+        print(f"Награды синего: {blue_rewards_list}")
+    old_red_rewards_list += red_rewards_list
+    old_blue_rewards_list += blue_rewards_list
+
+    red_total_reward = 0
+    red_rewards_list = []
+    blue_total_reward = 0
+    blue_rewards_list = []
+
+
+red_total_reward = 0
+red_rewards_list = []
+blue_total_reward = 0
+blue_rewards_list = []
+
+for generation in range(100):
     for i in range(env.max_time):
         if i % 2 == 0:
             # print(f"Пространство действий красного: {env.red_action_space}")
@@ -62,7 +138,6 @@ for generation in range(10):
             # print(f"Состояние компрометации: \n {state[1][1]}")
             if action[0] != action[1] and test_f:
                 graph_red.add_edge(action[0], action[1])
-                print(graph_red)
                 nx.draw_spring(graph_red, with_labels=True, node_color="Red")
                 plt.show()
 
@@ -70,8 +145,9 @@ for generation in range(10):
             print(f"Награда красного: {red_total_reward}")
             # red_all_trajectories.append([red_total_reward] + env.red_trajectory)
         else:
-            # print(f"Пространство действий синего: {env.blue_action_space}")
+            print(f"Пространство действий синего: {env.blue_action_space}")
             action = blue.get_action(i - 1, env)
+            print(f"Действие синего {len(action)}")
             state, rewards, terminated, info = env.step(action, "blue")
             print(f"Blue: {rewards, terminated, info}")
             blue_total_reward += rewards
@@ -79,15 +155,52 @@ for generation in range(10):
             # print(f"Фиксация выключения: \n {state[1][3]}")
             print(f"Награда синего: {blue_total_reward}")
             # blue_all_trajectories.append([blue_total_reward] + env.blue_trajectory)
-    red_rewards_list.append(red_total_reward)
-    blue_rewards_list.append(blue_total_reward)
+        if terminated:
+            print("End")
+            env.reset()
+            break
+
+    red_rewards_list.append([generation, red_total_reward])
+    blue_rewards_list.append([generation, blue_total_reward])
     red_total_reward = 0
     blue_total_reward = 0
+
+    graph_red = nx.Graph()
 
     obs, info = env.reset()
     red_all_trajectories = env.red_trajectories
     blue_all_trajectories = env.blue_trajectories
+    elite_session_red_num = env.get_quantile(quantile, red_rewards_list)
+    elite_session_red_list = [red_all_trajectories[x[0]] for x in elite_session_red_num]
+    elite_session_blue = env.get_quantile(quantile, blue_rewards_list)
+    red.update_policy(env, elite_session_red_list)
+
     print(f"Траектории Red: {red_all_trajectories}")
+    print(f"Кол-во траекторий красного {len(red_all_trajectories)}")
+    print(f"Номера лучших траекторий красного {elite_session_red_num}")
+    print(f"Лучшие траеткории красного {elite_session_red_list}")
+    print(f"Кол-во траекторий синего {len(blue_all_trajectories)}")
+    print(f"Номера лучших траетории синего {elite_session_blue}")
     print(f"Награды красного: {red_rewards_list}")
     print(f"Награды синего: {blue_rewards_list}")
+    print(f"Старые награды красного {old_red_rewards_list}")
+    print(f"Старые награды синего {old_blue_rewards_list}")
 
+old_red_r = [_[1] for _ in old_red_rewards_list]
+red_r = [_[1] for _ in red_rewards_list]
+old_blue_r = [_[1] for _ in old_blue_rewards_list]
+blue_r = [_[1] for _ in blue_rewards_list]
+
+plt.subplot(211)
+plt.plot(old_red_r, color="red")
+plt.plot(red_r, color="black")
+plt.xlabel("Generation")
+plt.ylabel("Total reward")
+
+plt.subplot(212)
+plt.plot(old_blue_r, color="blue")
+plt.plot(blue_r, color="black")
+plt.xlabel("Generation")
+plt.ylabel("Total reward")
+
+plt.show()

@@ -53,7 +53,8 @@ class EnvNetwork(gym.Env):
         self.info_type = {"red": ["Ход red прошел успешно", "Проблема с ходом red"],
                           "blue": ["Ход blue прошел успешно", "Проблема с ходом blue"],
                           "env": ["Ошибка", "Начало хода", "Выбран неправильный тип агента",
-                                  "Выбрано действие, которого нет в списке"]}
+                                  "Выбрано действие, которого нет в списке",
+                                  "Красный проиграл, потому что синий выключил текущий узел красного"]}
         self.info = ""
 
     """
@@ -81,6 +82,10 @@ class EnvNetwork(gym.Env):
         reward = 0
         self.info += self.info_type["env"][1]
         if agent_type == "red":
+            current_red_action_space = self.red_action_space
+            if action[0] in self.off_node:
+                self.info += self.info_type["env"][4]
+                self.terminated = True
             if action[2] not in self.red_action_var:
                 self.info += self.info_type["env"][3]
                 return red_reward, blue_reward, False, self.info
@@ -100,16 +105,16 @@ class EnvNetwork(gym.Env):
                 red_reward = self.red_rewards[2]
             if red_reward not in self.red_rewards:
                 self.info += ' ' + self.info_type["red"][1]
-                print(red_reward, self.red_rewards)
+                print(red_reward, self.red_rewards, self.info)
             else:
                 pass
             red_reward += self.red_rewards[3]
             reward = red_reward
-            self.red_trajectory.append([reward, action[0], action])
+            self.red_trajectory.append([reward, action[0], action, current_red_action_space])
             print(f"Траектория красного: {self.red_trajectory}")
 
         elif agent_type == "blue":
-            self.blue_trajectory.append(self.blue_state)
+            self.blue_trajectory.append([action, self.blue_state])
             blue_step = action
             num_node = blue_step[0]
             if blue_step[1] == 1:
@@ -158,6 +163,8 @@ class EnvNetwork(gym.Env):
             self.info = ""
         obs = tuple[self.red_state, self.blue_state]
         info = dict['Reset', 1]
+        self.red_trajectory = []
+        self.blue_trajectory = []
         return obs, info
 
     def seed(self, seed=None):
@@ -219,6 +226,7 @@ class EnvNetwork(gym.Env):
             red_space_array += [pairs]
         #print("Пространство возможных действий Red: " + str(red_space_array))
         assert (len(red_space_array) != 0)
+        red_space_array = self.update_red_actions_array(red_space_array)
         return red_space_array
 
     def set_blue_action_space(self):
@@ -272,3 +280,43 @@ class EnvNetwork(gym.Env):
         :return:
         """
         self.blue_state[num_layers][num_node][num_node] = 1
+
+    def sort_trajectories(self, trajectories: list):
+        if len(trajectories) <= 1:
+            return trajectories
+        else:
+            border = trajectories[0]
+            left = [x for x in trajectories[1:] if x[1] >= border[1]]
+            right = [x for x in trajectories[1:] if x[1] < border[1]]
+            return self.sort_trajectories(left) + [border] + self.sort_trajectories(right)
+
+    def get_quantile(self, quantile, trajectories):
+        sorted_list = self.sort_trajectories(trajectories)
+        q = int(len(sorted_list) * quantile)
+        elite = [0] * q
+        if q > 0:
+            for i in range(q):
+                elite[i] = sorted_list[i]
+        return elite
+
+    def set_elite_session(self, quantile, trajectories):
+        id_reward_elite = self.get_quantile(quantile, trajectories)
+        for elite in id_reward_elite:
+            return self.blue_trajectories[elite[0]]
+
+    def update_red_actions_array(self, action_space):
+        current_action_space = action_space
+        for action in range(len(action_space)):
+            if action >= len(action_space):
+                break
+            elif current_action_space[action][1] in self.off_node:
+                # print(f"removed {current_action_space[action]}")
+                current_action_space.remove(current_action_space[action])
+            elif current_action_space[action][2] == 2 and current_action_space[action][2] in self.attacks:
+                # print(f"removed {current_action_space[action]}")
+                current_action_space.remove(current_action_space[action])
+            elif current_action_space[action][2] == 3 and current_action_space[action][2] not in self.attacks:
+                # print(f"removed {current_action_space[action]}")
+                action_space.remove(action_space[action])
+        return current_action_space
+

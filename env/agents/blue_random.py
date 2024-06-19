@@ -20,15 +20,14 @@ class BlueRandomAgent(AgentInterface):
         :param elite_session: list
         :param env: EnvNetwork
         """
-        new_policy = np.zeros(self.len_state(env), env.blue_action_space)
-
+        new_policy = np.zeros([self.len_state(env), len(env.blue_action_space)])
         for session in elite_session:
-            for state, action in (session['state'], session['action']):
-                s = self.interpretate_state(env, state, action[2])
-                a = self.search_action(env, action)
-                new_policy[s][a] = 1
+            action, state = session
+            s = self.interpretate_state(env, state, action)
+            a = self.search_action(env, action)
+            new_policy[s][a] = 1
 
-        for state in range(env.blue_action_space):
+        for state in range(len(env.blue_action_space)):
             if sum(new_policy[state]) == 0:
                 new_policy[state] = [1/len(env.blue_action_space) for x in range(len(env.blue_action_space))]
             elif sum(new_policy[state]) > 1:

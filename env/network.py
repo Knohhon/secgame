@@ -66,9 +66,14 @@ class Network:
         list_of_matrix = [matrix]
         # print("Матрица смежности: ", list_of_matrix)
         for i in range(self.count_layers):
-            zeros_matrix = np.zeros_like(matrix)
-            # print("Пустая матрица: " + str(zeros_matrix))
-            list_of_matrix.append(zeros_matrix)
+            if i == 4:
+                noise_matrix = np.random.default_rng(10).random((len(matrix[0]), len(matrix[0]))) / 10
+                print(noise_matrix)
+                list_of_matrix.append(noise_matrix)
+            else:
+                zeros_matrix = np.zeros_like(matrix)
+                # print("Пустая матрица: " + str(zeros_matrix))
+                list_of_matrix.append(zeros_matrix)
         # print("Все матрицы: ", list_of_matrix)
         return list_of_matrix
 
