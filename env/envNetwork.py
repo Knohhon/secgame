@@ -108,6 +108,7 @@ class EnvNetwork(gym.Env):
                 print(red_reward, self.red_rewards, self.info)
             else:
                 pass
+            self.update_noise_by_red(action)
             red_reward += self.red_rewards[3]
             reward = red_reward
             self.red_trajectory.append([reward, action[0], action, current_red_action_space])
@@ -320,3 +321,12 @@ class EnvNetwork(gym.Env):
                 action_space.remove(action_space[action])
         return current_action_space
 
+    def update_noise_by_red(self, action):
+        if action[2] == 1:
+            self.env[4][action[0]][action[0]] *= 1.1
+        elif action[2] == 2:
+            self.env[4][action[0]][action[0]] *= 1.2
+            self.env[4][action[1]][action[1]] *= 1.4
+        elif action[2] == 3:
+            self.env[4][action[0]][action[0]] *= 1.3
+            self.env[4][action[1]][action[1]] *= 2

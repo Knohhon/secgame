@@ -1,4 +1,5 @@
 from env.agents.blue_random import BlueRandomAgent
+from env.agents.blue_simple_max import BlueSimpleMaxAgent
 from env.agents.red_random import RedRandomAgent
 
 
@@ -38,5 +39,7 @@ class Agent:
         elif self.agent_type[0] == "Blue":
             if self.agent_type[1] == "Random":
                 return BlueRandomAgent()
+            elif self.agent_type[1] == "SimpleMax":
+                return BlueSimpleMaxAgent()
             else:
                 return "Oops!"
